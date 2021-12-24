@@ -1,7 +1,6 @@
 <template>
   <div class="home">
-    <img alt="Vue logo" src="../assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js + TypeScript App"/>
+    {{setNfts}}
   </div>
 </template>
 
@@ -13,12 +12,10 @@ import { ethers } from 'ethers'
 import axios from 'axios'
 import Web3Modal from 'web3modal'
 import Vue from 'vue'
-import HelloWorld from '@/components/HelloWorld.vue' // @ is an alias to /src
 
 export default Vue.extend({
   name: 'Home',
   components: {
-    HelloWorld
   },
   data () {
     return {

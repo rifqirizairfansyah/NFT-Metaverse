@@ -11,10 +11,12 @@
 
 <script>
 import { ethers } from 'ethers'
-import { client } from '@/middleware/ipfs.js'
-import Web3Modal from 'web3modal'
+import { create } from 'ipfs-http-client'
+import ipfs from '@/middleware/ipfs'
+import Market from '../../artifacts/contracts/NTFMarket.sol/NFTMarket.json'
 import NFT from '../../artifacts/contracts/NFT.sol/NFT.json'
-import { nftaddress } from '../../config.js'
+import Web3Modal from 'web3modal'
+import { nftmarketaddress, nftaddress } from '../../config.js'
 import Vue from 'vue'
 
 export default Vue.extend({
@@ -41,9 +43,12 @@ export default Vue.extend({
     async onChange (e) {
       const file = e.target.files[0]
       try {
-        const added = await client.add(file, { progress: (prog) => console.log(`received: ${prog}`) })
+        const client = create('https://ipfs.infura.io:5001/api/v0')
+        const added = await client.add(file)
         const url = `https://ipfs.infura.io/ipfs/${added.path}`
         this.setFileUrl = url
+        this.fileUrl = file
+        console.log(file)
       } catch (error) {
         console.log(error)
       }
@@ -51,9 +56,10 @@ export default Vue.extend({
     async createItem () {
       const { name, description } = this.formInput
       const data = JSON.stringify({
-        name, description, image: this.fileUrl
+        name, description, image: this.setFileUrl
       })
       try {
+        const client = create('https://ipfs.infura.io:5001/api/v0')
         const added = await client.add(data)
         const url = `https://ipfs.infura.io/ipfs/${added.path}`
         this.createSale(url)
@@ -67,15 +73,16 @@ export default Vue.extend({
       const provider = new ethers.providers.Web3Provider(connection)
       const signer = provider.getSigner()
 
-      const contract = new ethers.Contract(nftaddress, NFT.abi, signer)
+      let contract = new ethers.Contract(nftaddress, NFT.abi, signer)
       let transaction = await contract.createToken(url)
       const tx = await transaction.wait()
-
-      const event = tx.event[0]
+      const event = tx.events[0]
       const value = event.args[2]
       const tokenId = value.toNumber()
 
       const price = ethers.utils.parseUnits(this.formInput.price, 'ether')
+
+      contract = new ethers.Contract(nftmarketaddress, Market.abi, signer)
 
       let listingPrice = await contract.getListingPrice()
       listingPrice = listingPrice.toString()
@@ -83,7 +90,7 @@ export default Vue.extend({
       transaction = await contract.createMarketItem(
         nftaddress, tokenId, price, { value: listingPrice }
       )
-
+      console.log('wait 2')
       await transaction.wait()
       this.$router.push('/')
     }

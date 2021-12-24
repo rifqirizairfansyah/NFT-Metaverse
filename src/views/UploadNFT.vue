@@ -11,7 +11,6 @@
 
 <script>
 import { ethers } from 'ethers'
-import { create } from 'ipfs-http-client'
 import ipfs from '@/middleware/ipfs'
 import Market from '../../artifacts/contracts/NTFMarket.sol/NFTMarket.json'
 import NFT from '../../artifacts/contracts/NFT.sol/NFT.json'
@@ -43,12 +42,9 @@ export default Vue.extend({
     async onChange (e) {
       const file = e.target.files[0]
       try {
-        const client = create('https://ipfs.infura.io:5001/api/v0')
-        const added = await client.add(file)
+        const added = await ipfs.add(file)
         const url = `https://ipfs.infura.io/ipfs/${added.path}`
         this.setFileUrl = url
-        this.fileUrl = file
-        console.log(file)
       } catch (error) {
         console.log(error)
       }
@@ -59,8 +55,7 @@ export default Vue.extend({
         name, description, image: this.setFileUrl
       })
       try {
-        const client = create('https://ipfs.infura.io:5001/api/v0')
-        const added = await client.add(data)
+        const added = await ipfs.add(data)
         const url = `https://ipfs.infura.io/ipfs/${added.path}`
         this.createSale(url)
       } catch (e) {
@@ -76,13 +71,10 @@ export default Vue.extend({
       let contract = new ethers.Contract(nftaddress, NFT.abi, signer)
       let transaction = await contract.createToken(url)
       const tx = await transaction.wait()
-      console.log(tx)
       const event = tx.events[0]
       const value = event.args[2]
       const tokenId = value.toNumber()
-      console.log(value)
       const price = ethers.utils.parseUnits(this.formInput.price, 'ether')
-      console.log(price)
       contract = new ethers.Contract(nftmarketaddress, Market.abi, signer)
 
       let listingPrice = await contract.getListingPrice()

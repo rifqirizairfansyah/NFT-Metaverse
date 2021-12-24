@@ -1,13 +1,5 @@
 <template>
   <div class="home">
-    <div class="card" v-for="item in setNfts" v-bind:key="item.tokenId">
-      <img :src="item.image" alt="Avatar" style="width:100%">
-      <div class="container">
-        <h4><b>{{item.name}}</b></h4>
-        <p>{{item.description}}</p>
-        <input type="submit" @click="buyNFTs(item)">
-      </div>
-    </div>
     {{setNfts}}
   </div>
 </template>
@@ -35,27 +27,15 @@ export default Vue.extend({
     this.loadNFTs()
   },
   methods: {
-    async buyNFTs (nft) {
+    async loadNFTs () {
       const web3modal = new Web3Modal()
       const connection = await web3modal.connect()
       const provider = new ethers.providers.Web3Provider(connection)
-
       const signer = provider.getSigner()
-      const contract = new ethers.Contract(nftmarketaddress, Market.abi, signer)
 
-      const price = ethers.utils.parseUnits(nft.price.toString(), 'ether')
-      const transaction = await contract.createMarketSale(nftaddress, nft.tokenId, {
-        value: price
-      })
-
-      await transaction.wait()
-      this.loadNFTs()
-    },
-    async loadNFTs () {
-      const provider = new ethers.providers.JsonRpcProvider()
-      const tokenContract = new ethers.Contract(nftaddress, NFT.abi, provider)
-      const marketContract = new ethers.Contract(nftmarketaddress, Market.abi, provider)
-      const data = await marketContract.fetchMarketItems()
+      const tokenContract = new ethers.Contract(nftaddress, NFT.abi, signer)
+      const marketContract = new ethers.Contract(nftmarketaddress, Market.abi, signer)
+      const data = await marketContract.fetchMyNFTs()
 
       const items = await Promise.all(data.map(async i => {
         const tokenUri = await tokenContract.tokenURI(i.tokenId)
@@ -78,18 +58,3 @@ export default Vue.extend({
   }
 })
 </script>
-<style scoped>
-.card {
-  box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
-  transition: 0.3s;
-  width: 40%;
-}
-
-.card:hover {
-  box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
-}
-
-.container {
-  padding: 2px 16px;
-}
-</style>

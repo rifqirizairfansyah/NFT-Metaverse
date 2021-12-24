@@ -2,6 +2,8 @@ import Vue from 'vue'
 import VueRouter, { RouteConfig } from 'vue-router'
 import Home from '../views/Home.vue'
 import Upload from '../views/UploadNFT.vue'
+import Creator from '../views/Creator-Dashboard.vue'
+import Assets from '../views/My-Assets.vue'
 
 Vue.use(VueRouter)
 
@@ -15,6 +17,16 @@ const routes: Array<RouteConfig> = [
     path: '/upload',
     name: 'upload',
     component: Upload
+  },
+  {
+    path: '/assets',
+    name: 'assets',
+    component: Assets
+  },
+  {
+    path: '/creator',
+    name: 'creator',
+    component: Creator
   },
   {
     path: '/about',

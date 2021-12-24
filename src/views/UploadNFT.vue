@@ -76,12 +76,13 @@ export default Vue.extend({
       let contract = new ethers.Contract(nftaddress, NFT.abi, signer)
       let transaction = await contract.createToken(url)
       const tx = await transaction.wait()
+      console.log(tx)
       const event = tx.events[0]
       const value = event.args[2]
       const tokenId = value.toNumber()
-
+      console.log(value)
       const price = ethers.utils.parseUnits(this.formInput.price, 'ether')
-
+      console.log(price)
       contract = new ethers.Contract(nftmarketaddress, Market.abi, signer)
 
       let listingPrice = await contract.getListingPrice()

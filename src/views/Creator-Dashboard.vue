@@ -36,8 +36,8 @@ export default Vue.extend({
       const provider = new ethers.providers.Web3Provider(connection)
       const signer = provider.getSigner()
 
-      const tokenContract = new ethers.Contract(nftaddress, NFT.abi, signer)
       const marketContract = new ethers.Contract(nftmarketaddress, Market.abi, signer)
+      const tokenContract = new ethers.Contract(nftaddress, NFT.abi, provider)
       const data = await marketContract.fetchItemsCreated()
 
       const items = await Promise.all(data.map(async i => {
@@ -49,13 +49,12 @@ export default Vue.extend({
           tokenId: i.tokenId.toNumber(),
           seller: i.seller,
           owner: i.owner,
-          image: meta.data.image,
-          name: meta.data.name,
-          description: meta.data.description
+          sold: i.sold,
+          image: meta.data.image
         }
         return item
       }))
-
+      /* create a filtered array of items that have been sold */
       const soldItems = items.filter(i => i.sold)
       this.setSold = soldItems
       this.setNfts = items
